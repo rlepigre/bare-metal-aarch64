@@ -31,3 +31,4 @@ Index of available project steps
 --------------------------------
 
 - [Step 0](./step-00/README.md): installing a cross-compiler
+- [Step 1](./step-01/README.md): building and running a minimal image
