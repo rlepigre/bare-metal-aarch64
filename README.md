@@ -33,3 +33,4 @@ Index of available project steps
 - [Step 0](./step-00/README.md): installing a cross-compiler
 - [Step 1](./step-01/README.md): building and running a minimal image
 - [Step 2](./step-02/README.md): inspecting the machine state with GDB
+- [Step 3](./step-03/README.md): determining the exception level

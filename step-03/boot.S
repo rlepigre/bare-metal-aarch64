@@ -1,0 +1,30 @@
+// The entry point is in its own section ".text.boot".
+.section ".text.boot"
+
+// The symbol "_start" is the kernel's entry point, make it global.
+.globl _start
+
+// The auxiliary cores are initially asleep.
+// They can be woken up (independently) by following the following steps.
+// 1) Writing an address to jump to at:
+//    - 0xe0 for core 2,
+//    - 0xe8 for core 3,
+//    - 0xf0 for core 4.
+// 2) Issuing an "sev" instruction to force the core out of low-power mode.
+
+// Entry point for the main core.
+// We have the following guarantees on general-purpose registers:
+// - x0 contains the physical address of the device tree blob (DTB) in RAM,
+// - x1 has value 0 (reserved for future use),
+// - x2 has value 0 (reserved for future use),
+// - x3 has value 0 (reserved for future use),
+// - x4 has value 0x80000 (probably firmware-specific and unreliable).
+_start:
+  // Put the current exception level in x5.
+  mrs x5, CurrentEL     // Move the CurrentEL system register into x5.
+  ubfx x5, x5, #3, #2   // Extract the relevant bitfield (bits 3:2).
+
+  // Hang forever in a loop.
+hang_forever:
+  wfe                   // Allow the CPU to go to low-power mode.
+  b hang_forever
