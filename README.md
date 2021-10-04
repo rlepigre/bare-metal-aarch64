@@ -34,3 +34,4 @@ Index of available project steps
 - [Step 1](./step-01/README.md): building and running a minimal image
 - [Step 2](./step-02/README.md): inspecting the machine state with GDB
 - [Step 3](./step-03/README.md): determining the exception level
+- [Step 4](./step-04/README.md): setting up a C environment
