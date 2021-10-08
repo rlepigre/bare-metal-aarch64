@@ -30,7 +30,7 @@ in our `Makefile` to do that for us.
 .PHONY: gdb
 gdb: kernel8.elf
 	@echo "[GDB]     running with $<"
-	${Q}${BINROOT}gdb -ex "target remote :1234" $<
+	${Q}${GDB} -ex "target remote :1234" $<
 ```
 After having launched QEMU with `make run-gdb`, run `make gdb` in use an other
 terminal to start a GDB session in which you are alredy connected to QEMU. You
