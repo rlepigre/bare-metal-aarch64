@@ -36,3 +36,4 @@ Index of available project steps
 - [Step 3](./step-03/README.md): determining the exception level
 - [Step 4](./step-04/README.md): setting up a C environment
 - [Step 5](./step-05/README.md): debug printing (in C) via an UART
+- [Step 6](./step-06/README.md): a minimal debugging shell
