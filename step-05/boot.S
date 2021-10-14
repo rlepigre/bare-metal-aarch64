@@ -22,7 +22,7 @@
 _start:
   // Put the current exception level in x5.
   mrs x5, CurrentEL     // Move the CurrentEL system register into x5.
-  ubfx x5, x5, #3, #2   // Extract the relevant bitfield (bits 3:2).
+  ubfx x5, x5, #2, #2   // Extract the relevant bitfield (bits 3:2).
 
   // Set the SPSel register so that SP_EL0 is the stack pointer at all EL.
   mrs x6, SPSel         // Move the current SPSel  system register into x6.

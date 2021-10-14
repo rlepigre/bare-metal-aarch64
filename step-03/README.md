@@ -41,7 +41,7 @@ of our general purpose registers, say `x5`.
 _start:
   // Put the current exception level in x5.
   mrs x5, CurrentEL     // Move the CurrentEL system register into x5.
-  ubfx x5, x5, #3, #2   // Extract the relevant bitfield (bits 3:2).
+  ubfx x5, x5, #2, #2   // Extract the relevant bitfield (bits 3:2).
 
   // Hang forever in a loop.
 hang_forever:
@@ -56,25 +56,36 @@ that we changed the looping code at the end (previously `b .`) to use `wfe` at
 each step of the loop. This will let the CPU go into low-power mode instead of
 just eagerly looping (but this only really matters on real hardware).
 
+**Note:** the operands of the `ubfx` instructions are (in order): the register
+where to put the result, the register where the initial value is, the index of
+the least significant bit of the field we want to extract, the field size as a
+number of bits. For range 3:2, the index of the least significant bit is 2 and
+there are 2 bits in the range.
+
 We can now use GDB to access the value of `x5` to see what the current EL is.
 ```
 (gdb) si 10
 0x0000000000080008 in hang_forever ()
 (gdb) info register x5
-x5             0x1                 1
+x5             0x2                 2
 ```
 We first run 10 instructions using `si 10`, which seems to be enough since the
 main core is now executing the `hang_forever` loop. We can then read `x5` with
-`info register x5` (which can be abbreviated `i r x5`). We are at `EL1`!
+`info register x5` (which can be abbreviated `i r x5`). We are at `EL2`!
 
 
-Not like the actual Raspberry Pi 3?
------------------------------------
+What about the actual Raspberry Pi 3?
+-------------------------------------
 
 According to the information I could find, the actual Raspberry Pi 3 starts at
 `EL2` by default, and can be configured to start at `EL3`. It is possible that
-QEMU can be configured to do this as well, but I could not find how to do this
-(I asked the question on the QEMU mailing list though, and got no answer yet).
+QEMU can be also configured to start at `EL3`, but I could not find how.
+
+**Note:** some online resources wrongly claim that the emulated Raspberry Pi 3
+in QEMU starts at `EL1`. In fact, an initial version of this step contained an
+error in the operands of the `ubfx` instruction, which lead me to believe that
+the initial exception level was `EL1` as well (this did not surpise me since I
+read somewhere that this was supposed to be the case).
 
 Since the plan is to eventually run our experiments on the actual hardware, we
 will need to run our kernel on the Raspberry Pi 3, and check its behaviour. To
