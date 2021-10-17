@@ -4,9 +4,9 @@
 
 // Entry point for the kernel, allocated in the ".text" segment.
 // This function never returns.
-void kernel_entry(void *dtb_p, u64 x1, u64 x2, u64 x3){
+void kernel_entry(void *dtb, u64 x1, u64 x2, u64 x3){
   // Silence GDB warnings about unused parameters.
-  UNUSED(dtb_p); UNUSED(x1); UNUSED(x2); UNUSED(x3);
+  UNUSED(dtb); UNUSED(x1); UNUSED(x2); UNUSED(x3);
 
   // Initialise the UART, and print a first message.
   uart1_init();

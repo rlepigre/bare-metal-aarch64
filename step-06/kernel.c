@@ -8,7 +8,7 @@
 
 // Entry point for the kernel, allocated in the ".text" segment.
 // This function never returns.
-void kernel_entry(void *dtb_p, u64 x1, u64 x2, u64 x3, u64 x4, u64 x5){
+void kernel_entry(void *dtb, u64 x1, u64 x2, u64 x3, u64 x4, u64 x5){
   // Initialise the UART, and print a first message.
   uart1_init();
   uart1_puts("********************************************\n");
@@ -22,8 +22,8 @@ void kernel_entry(void *dtb_p, u64 x1, u64 x2, u64 x3, u64 x4, u64 x5){
   uart1_printf("Initial entry point:     0x%w.\n", x4);
   uart1_printf("Initial exception level: EL%i.\n", (int) x5);
   uart1_printf("Address of the DTB:      ");
-  if(dtb_p){
-    uart1_printf("0x%w.\n", (u64) dtb_p);
+  if(dtb){
+    uart1_printf("0x%w.\n", (u64) dtb);
   } else {
     uart1_printf("n/a\n");
   }

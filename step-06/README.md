@@ -27,9 +27,9 @@ and they both have value `__bss_start` at the call to `kernel_entry`. However,
 address of our entry point (i.e., `0x80000`), and the latter gives the current
 exception level (EL). We will thus feed these values to `kernel_entry`.
 ```c
-void kernel_entry(void *dtb_p, u64 x1, u64 x2, u64 x3, u64 x4, u64 x5){
+void kernel_entry(void *dtb, u64 x1, u64 x2, u64 x3, u64 x4, u64 x5){
   // Silence GDB warnings about unused parameters.
-  UNUSED(dtb_p); UNUSED(x1); UNUSED(x2); UNUSED(x3); UNUSED(x4); UNUSED(x5);
+  UNUSED(dtb); UNUSED(x1); UNUSED(x2); UNUSED(x3); UNUSED(x4); UNUSED(x5);
 
   ... // Same as before.
 }
@@ -99,7 +99,7 @@ variable argument list works (use command `man 3 stdarg.h` to open it).
 
 To test our new printing function, we can change `kernel_entry` as follows.
 ```c
-void kernel_entry(void *dtb_p, u64 x1, u64 x2, u64 x3, u64 x4, u64 x5){
+void kernel_entry(void *dtb, u64 x1, u64 x2, u64 x3, u64 x4, u64 x5){
   // Initialise the UART, and print a first message.
   uart1_init();
   uart1_puts("********************************************\n");
@@ -113,8 +113,8 @@ void kernel_entry(void *dtb_p, u64 x1, u64 x2, u64 x3, u64 x4, u64 x5){
   uart1_printf("Initial entry point:     0x%w.\n", x4);
   uart1_printf("Initial exception level: EL%i.\n", (int) x5);
   uart1_printf("Address of the DTB:      ");
-  if(dtb_p){
-    uart1_printf("0x%w.\n", (u64) dtb_p);
+  if(dtb){
+    uart1_printf("0x%w.\n", (u64) dtb);
   } else {
     uart1_printf("n/a\n");
   }
