@@ -1,9 +1,43 @@
 Step 0: installing a cross-compiler
 ===================================
 
-Before we can compile our project, we must first install a cross-compiler. The
-instructions given here will help you install the relevent versions of the GCC
-compiler and Binutils. They are based on the instructions found on the "osdev"
+Before we can compile our project, we must first install a cross-compiler.
+There are two options for this: The first option is to use the package manager
+of your distribution to install the cross compiler. The second option is to
+compile gcc and binutils from source.
+
+Installation via the package manager
+------------------------------------
+
+On Debian, a suitable version of gcc, binutils and gdb can be installed via
+```
+sudo apt-get install binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu gdb-multiarch
+```
+
+If you do this, you need to adapt the variables in `common.mk` to point to the
+installed binaries as follows:
+```
+# Prefix to use before all binutils, gcc and gdb commands.
+BINROOT = aarch64-linux-gnu-
+# Name of the gdb command
+GDB = gdb-multiarch
+```
+
+With the above, you should be able to call commands such as `${BINROOT}gcc` or
+`${BINROOT}ld`, build of an usual command name prefixed with `${BINROOT}`. The
+following target can be added to your `Makefile` to try this.
+```make
+.PHONY: all
+all:
+	@${BINROOT}gcc --version | head -n 1
+```
+Running `make` should output a line like `aarch64-linux-gnu-gcc (Debian 8.3.0-2) 8.3.0`
+
+Installation from source
+------------------------
+
+The instructions given here will help you install the relevant versions of the
+GCC compiler and Binutils. They are based on the instructions found on the "osdev"
 wiki, which can be found [here](https://wiki.osdev.org/GCC_Cross-Compiler). We
 will also install a corresponding version of GDB, that will come in handy when
 we start running our code using QEMU.
@@ -91,7 +125,7 @@ Notes on PATH and Makefile
 
 There is no need to permanently extend you path with our `compiler/prefix/bin`
 directory. Instead, you can define `COMPILER_PREFIX` and `BINROOT` variable as
-follows, at the top of your `Makefile`.
+follows in your Makefile.
 ```make
 # Relative path to the prefix where the compiler was installed.
 COMPILER_PREFIX = compiler/prefix
@@ -99,10 +133,21 @@ COMPILER_PREFIX = compiler/prefix
 # Prefix to use before all binutils, gcc and gdb commands.
 BINROOT = ${COMPILER_PREFIX}/bin/aarch64-elf-
 ```
+Here we put these variables into a shared Makefile `common.mk` that will be
+reused by later steps.
+
 You may need to adapt the definition of `COMPILER_PREFIX` depending on how you
 installed Binutils, GCC and GDB. In this repository, `COMPILER_PREFIX` will be
 defined as `../compiler/prefix` since our `Makefile` is not at the root of the
 repository, but under a `step_XX` directory.
+
+Let us additionally define a shorthand for the `gdb` command to `common.mk` (this
+is necessary since `gdb` does not follow the general naming pattern when installing
+via a package manager).
+```
+# Name of the gdb command
+GDB = ${BINROOT}gdb
+```
 
 With the above, you should be able to call commands such as `${BINROOT}gcc` or
 `${BINROOT}ld`, build of an usual command name prefixed with `${BINROOT}`. The

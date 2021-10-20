@@ -1,13 +1,4 @@
-# Relative path to the prefix where the compiler was installed.
-COMPILER_PREFIX = ../compiler/prefix
-
-# Prefix to use before all binutils, gcc and gdb commands.
-BINROOT = ${COMPILER_PREFIX}/bin/aarch64-elf-
-
-# Variable used to control the printing of commands.
-# Printing is disabled by default (due to the "@").
-# To enable command printing run "make Q= ..." instead of "make ...".
-Q = @
+include ../step-00/common.mk
 
 .PHONY: all
 all: kernel8.img
@@ -39,7 +30,7 @@ run-gdb: kernel8.img
 .PHONY: gdb
 gdb: kernel8.elf
 	@echo "[GDB]     running with $<"
-	${Q}${BINROOT}gdb -ex "target remote :1234" $<
+	${Q}${GDB} -ex "target remote :1234" $<
 
 .PHONY: clean
 clean:
