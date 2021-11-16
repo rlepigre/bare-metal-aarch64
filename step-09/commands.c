@@ -1,6 +1,7 @@
 #include <types.h>
 #include <string.h>
 #include <util.h>
+#include <asm.h>
 #include <bcm2837/uart1.h>
 #include <kernel/commands.h>
 
@@ -110,6 +111,20 @@ int get(size_t argc, char **argv){
 
   uart1_printf("The secret counter has value %i\n", (int) v);
   return 0;
+}
+
+void hyper_sync_error(void) {
+  u64 esr, elr, far;
+  read_sysreg(ESR_EL2, esr);
+  read_sysreg(ELR_EL2, elr);
+  read_sysreg(FAR_EL2, far);
+
+  uart1_printf("! EL2 Abort\n");
+  uart1_printf("ESR_EL2 : %w\n", esr);
+  uart1_printf("ELR_EL2 : %w\n", elr);
+  uart1_printf("FAR_EL2 : %w\n", far);
+  uart1_printf("[Program Died]\n");
+  while (1);
 }
 
 // Fill in the list of commands (exposed by "include/kernel/commands.h").

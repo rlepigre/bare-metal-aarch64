@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <string.h>
 #include <util.h>
+#include <fdt.h>
 #include <kernel/shell.h>
 
 // Entry point for the kernel, allocated in the ".text" segment.
@@ -25,6 +26,7 @@ void kernel_entry(void *dtb, u64 x1, u64 x2, u64 x3, u64 x4, u64 x5, u64 x6){
   uart1_printf("Address of the DTB:      ");
   if(dtb){
     uart1_printf("0x%w.\n", (u64) dtb);
+    dtb_print_bootargs(dtb);
   } else {
     uart1_printf("n/a\n");
   }

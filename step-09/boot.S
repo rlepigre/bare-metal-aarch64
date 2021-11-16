@@ -39,12 +39,32 @@ done_with_dtb:
 
   // Set up the stack below our code (it grows downwards).
   // This should be plenty big enough: only the first 4KB of memory are used.
-  ldr x6, =_start
+  adrp x9, _start
+  add x9, x9, :lo12:_start
+  and x6, x9, ~0b1111
   mov sp, x6
 
+  // perform Elf Rela relocations
+  adrp x10, __ld_begin_reloc
+  add x10, x10, :lo12:__ld_begin_reloc
+  adrp x11, __ld_end_reloc
+  add x11, x11, :lo12:__ld_end_reloc
+1:
+  sub x12, x11, x10
+  cbz x12, 1f
+  ldr x12, [x10]      // r_offset
+  ldr x13, [x10, #16] // r_addend
+  add x13, x13, x9    // base + r_addend
+  str x13, [x9, x12]  // Mem[base + r_offset] <- base + r_addend
+  add x10, x10, #24
+  b 1b
+  
+1:
   // Clear the BSS segment (assumes __bss_start and __bss_end word-aligned).
-  ldr x6, =__bss_start  // Current word of the BSS (initially at start).
-  ldr x7, =__bss_end    // Address one past the BSS segment.
+  adrp x6, __bss_start  // Current word of the BSS (initially at start).
+  add x6, x6, :lo12:__bss_start
+  adrp x7, __bss_end    // Address one past the BSS segment.
+  add x7, x7, :lo12:__bss_end
 bss_clear_loop:
   cmp x6, x7            // If we have reached the end ...
   b.ge bss_clear_done   // ... exit the loop.
@@ -54,17 +74,28 @@ bss_clear_loop:
 bss_clear_done:
 
   // Install an exception vector.
-  ldr x6, =el2_exception_vector
+  adrp x6, el2_exception_vector
+  add x6, x6, :lo12:el2_exception_vector
   msr vbar_el2, x6
 
+  // configure execution for EL1
+  ldr x6, =0x300000
+  msr CPTR_EL2, x6
+  ldr x6, =0x31ff
+  msr CPTR_EL2, x6
+  ldr x6, =0x80000002
+  msr HCR_EL2, x6
+  ldr x6, =0xc58828
+  msr SCTLR_EL2, x6
+  msr SCTLR_EL1, xzr
+
   // Move to EL1.
-  mov x6, (1 << 31)     // Hypervisor configuration: aarch64 mode for EL1.
-  msr hcr_el2, x6       // (Written to the HCR_EL2 system register.)
-  mov x6, 0x3c4         // Configure EL1 state (use SP_EL0, no interupts).
-  msr spsr_el2, x6      // (Written to the SPSR_EL2 system register.)
-  ldr x6, =enter_el1    // Specify the "return from exception" address.
-  msr elr_el2, x6       // (Written to the ELR_EL2 system register.)
-  eret                  // Simulate an "exception return" to move to EL1.
+  mov x6, 0x3c4  // Configure EL1 state (use SP_EL0, no interupts).
+  msr spsr_el2, x6  // (Written to the SPSR_EL2 system register.)
+  adrp x6, enter_el1  // Specify the "return from exception" address.
+  add x6, x6, :lo12:enter_el1
+  msr elr_el2, x6  // (Written to the ELR_EL2 system register.)
+  eret // Simulate an "exception return" to move to EL1.
 enter_el1:
 
   // Put the current exception level in x6 (as we did for x5 above).
@@ -88,11 +119,16 @@ hang_forever:
   b hang_forever
 
 // Our exception vector for EL2.
-.align 11
+.align 12
 el2_exception_vector:
   // Synchronous - Current EL with SP0.
   .align 7
-  b .
+  msr SPSel, #0
+  adrp x6, _start
+  add x6, x6, :lo12:_start
+  and x6, x6, ~0b1111
+  mov sp, x6
+  b hyper_sync_error
   // IRQ - Current EL with SP0.
   .align 7
   b .
@@ -104,7 +140,12 @@ el2_exception_vector:
   b .
   // Synchronous - Current EL with SPx.
   .align 7
-  b .
+  msr SPSel, #0
+  adrp x6, _start
+  add x6, x6, :lo12:_start
+  and x6, x6, ~0b1111
+  mov sp, x6
+  b hyper_sync_error
   // IRQ - Current EL with SPx.
   .align 7
   b .
@@ -163,7 +204,8 @@ hvc_handler:
   b .
 
 hvc_handle_increment:
-  ldr x0, =secret_counter // Put the address of the secret counter in x0.
+  adrp x0, secret_counter
+  add x0, x0, :lo12:secret_counter // Put the address of the secret counter in x0.
   ldr x1, [x0]            // Load the value of the counter to x1.
   add x1, x1, 0x1         // Increment the counter in x1.
   str x1, [x0]            // Write the new counter value to memory.
@@ -176,7 +218,8 @@ hvc_handle_increment:
   eret
 
 hvc_handle_get:
-  ldr x0, =secret_counter // Put the address of the secret counter in x0.
+  adrp x0, secret_counter
+  add x0, x0, :lo12:secret_counter // Put the address of the secret counter in x0.
   ldr x1, [x0]            // Load the value of the counter to x1.
 
   // We use our stack space to return the value.
@@ -186,5 +229,7 @@ hvc_handle_get:
   // Return from the exception.
   eret
 
+// must be aligned on a 64-bit boundary
+.align 4
 secret_counter:
   .quad 0x0

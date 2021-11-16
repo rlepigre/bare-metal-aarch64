@@ -1,5 +1,6 @@
 *.o
 kernel8.elf
 kernel8.img
+kernel8.elf.S
 *.dtb
 *.pdf
